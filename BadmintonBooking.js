@@ -17,29 +17,30 @@ let date = "07/07/2020";
     const browser = await puppeteer.launch({
         headless: true,
     });
-    try {
-        const page = await browser.newPage();
-        await page.setViewport({ width, height });
-        await page.goto('https://www.onepa.sg/facilities/4020ccmcpa-bm');
-        //Date
-        await page.focus('#content_0_tbDatePicker');
-        await page.$eval('#content_0_tbDatePicker', (e) => e.removeAttribute("readonly"));
 
-        await page.keyboard.type(`${date}`);
-        await page.keyboard.press('Enter');
+    const page = await browser.newPage();
+    await page.setViewport({ width, height });
+    await page.goto('https://www.onepa.sg/facilities/4020ccmcpa-bm');
+    //Date
+    await page.focus('#content_0_tbDatePicker');
+    await page.$eval('#content_0_tbDatePicker', (e) => e.removeAttribute("readonly"));
 
-        //Location
-        let totalCCCount = 71;
-        let count = 0;
-        let resultList = [];
-        for (let i = 0; i < totalCCCount; i++) {
-            let locationPicker = await page.$('.select2-selection__arrow');
-            await locationPicker.click();
+    await page.keyboard.type(`${date}`);
+    await page.keyboard.press('Enter');
+
+    //Location
+    let totalCCCount = 71;
+    let count = 0;
+    let resultList = [];
+    for (let i = 0; i < totalCCCount; i++) {
+        let locationPicker = await page.$('.select2-selection__arrow');
+        await locationPicker.click();
+        if (i != 0)
             await page.keyboard.press('ArrowDown');
-            await delay(100)
-            await page.keyboard.press('Enter');
-            await page.waitForNavigation();
-
+        await delay(100)
+        await page.keyboard.press('Enter');
+        await page.waitForNavigation();
+        try {
             let locationName = await page.$eval('.location', el => el.innerHTML)
             locationName = locationName.trim();
             console.log(`Searching for ${locationName}`)
@@ -50,19 +51,18 @@ let date = "07/07/2020";
             count++;
             resultList.push(locationName);
             await delay(2000)
-
+        } catch (err) {
+            if (err.message !== `Error: failed to find element matching selector ".slots.normal"`)
+                console.log(err)
         }
-
-        await browser.close();
-        console.log("Seaching Completed")
-        resultList.map(result => {
-            console.log(result);
-        })
-        console.log(`There are total ${count} CC with slot`)
-    } catch (err) {
-        if (err.message !== `Error: failed to find element matching selector ".slots.normal"`)
-            console.log(err)
     }
+
+    await browser.close();
+    console.log("Seaching Completed")
+    resultList.map(result => {
+        console.log(result);
+    })
+    console.log(`There are total ${count} CC with slot`)
 })();
 
 
