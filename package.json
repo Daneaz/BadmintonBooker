@@ -1,0 +1,15 @@
+{
+  "name": "badmintonbooker",
+  "version": "1.0.0",
+  "description": "Badminton Booker",
+  "main": "BadmintonBooking.js",
+  "dependencies": {
+    "puppeteer": "^4.0.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Eugene Wu",
+  "license": "ISC"
+}
