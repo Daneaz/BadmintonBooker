@@ -1,6 +1,14 @@
 
 const puppeteer = require('puppeteer');
+const fs = require('fs');
+const path = require('path');
 
+fs.mkdir(path.join(__dirname, 'result'), (err) => {
+    if (err) {
+        return console.error(err);
+    }
+    console.log('Directory created successfully!');
+});
 // dd/mm/yyyy
 let date = "07/07/2020";
 (async () => {
