@@ -1,4 +1,6 @@
 
+// Search all cc to find aviliable slots
+
 const puppeteer = require('puppeteer');
 const fs = require('fs');
 const path = require('path');

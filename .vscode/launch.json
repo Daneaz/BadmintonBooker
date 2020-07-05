@@ -7,7 +7,16 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Launch Program",
+            "name": "Single Booker",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "program": "${workspaceFolder}/BookerForParticularCC.js"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "List Booker",
             "skipFiles": [
                 "<node_internals>/**"
             ],
