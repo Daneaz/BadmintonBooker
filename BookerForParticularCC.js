@@ -1,7 +1,6 @@
 
 const puppeteer = require('puppeteer');
 
-
 let CCLIST = [
     { count: 0, name: "ACE The Place CC" },
     { count: 1, name: "Anchorvale CC" },
@@ -84,7 +83,8 @@ let CCLIST = [
 let webPage = 'https://www.onepa.sg/facilities/4020ccmcpa-bm';
 let slot = [10, 11]
 // dd/mm/yyyy
-let date = "23/07/2020";
+let twoDayBeforeDate = "22/07/2020";
+let date = "24/07/2020";
 let ccName = "Jurong Green CC";
 
 (async () => {
@@ -118,7 +118,7 @@ let ccName = "Jurong Green CC";
     if (totalCCCount !== 0)
         await page.waitForNavigation();
 
-    await selectDate(page, date)
+    await selectDate(page, date, twoDayBeforeDate)
 
     table = await page.$('#facTable1');
     let result = await searchForSlot(table, slot);
@@ -157,15 +157,19 @@ async function searchForSlot(table, slot) {
     return false;
 }
 
-async function selectDate(page, date) {
+async function selectDate(page, date, twoDayBeforeDate) {
     let dateResult = null
     let error = "something";
+
     while (dateResult !== date || error !== '') {
         await page.focus('#content_0_tbDatePicker');
         await page.$eval('#content_0_tbDatePicker', (e) => e.removeAttribute("readonly"));
 
         await page.evaluate(() => document.getElementById("content_0_tbDatePicker").value = "")
-        await page.keyboard.type(`${date}`);
+        if (error !== '')
+            await page.keyboard.type(`${twoDayBeforeDate}`);
+        else
+            await page.keyboard.type(`${date}`);
 
         await page.keyboard.press('Enter');
         await page.keyboard.press('Enter');
@@ -174,7 +178,8 @@ async function selectDate(page, date) {
         dateResult = await page.$eval('#content_0_tbDatePicker', e => e.getAttribute('value'))
         console.log("Date not available, picking again")
         error = await page.$eval('#content_0_lblError', e => e.innerHTML)
-        await delay(100);
+        console.log(error)
+
     }
     console.log("Continue...")
     return;
