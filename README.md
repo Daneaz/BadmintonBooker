@@ -15,10 +15,10 @@ Book a pariticular slots at a pariticular CC on a paticular day.
 * **date:** The date you would like to book dd/mm/yyyy. eg 22/07/2020
 * **twoDayBeforeDate:** two day before the date you would like to book to avoid PA webpage bug. eg desired date 22/07/2020. twoDayBeforeDate will be 20/07/2020
 
-Lazy to code the UI part and no plans for the UI page for now. 
-
 ### Usage:
 1. Clone the project 
 2. npm i 
 3. Change the input parameters
 4. node BookerForParticularCC.js or BadmintonBooking.js
+
+***Lazy to code the UI part and no plans for the UI page for now.***
