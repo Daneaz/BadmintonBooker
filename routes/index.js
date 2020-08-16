@@ -9,10 +9,7 @@ const webPage = 'https://www.onepa.sg/facilities/4020ccmcpa-bm';
 let scheduleFlag = false;
 /* GET home page. */
 router.post('/book', function (req, res, next) {
-  let selectedDate = new Date(req.body.date);
-  let date = selectedDate.getDate();
-  let month = selectedDate.getMonth() + 1;
-  let scheduleDate = `0 55 21 ${date} ${month} *`
+  let scheduleDate = `0 55 21 * * *`
   let job;
   if (scheduleFlag === true) {
     console.log(`Job has scheduled... `)
