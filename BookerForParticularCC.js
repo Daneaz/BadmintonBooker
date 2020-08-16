@@ -1,91 +1,90 @@
+'use strict';
 
+var aws = require('aws-sdk');
 const puppeteer = require('puppeteer');
+const fs = require('fs');
+/* All the cc names copy to ccName var
+ACE The Place CC
+Anchorvale CC
+Ayer Rajah CC
+Bedok CC
+Boon Lay CC
+Braddell Heights CC
+Bukit Batok CC
+Bukit Merah CC
+Bukit Panjang CC
+Bukit Timah CC
+Buona Vista CC
+Cairnhill CC
+Canberra CC
+Changi Simei CC
+Chong Pang CC
+Chua Chu Kang CC
+Clementi CC
+Eunos CC
+Gek Poh Ville CC
+Geylang Serai CC
+Geylang West CC
+Henderson CC
+Hong Kah North CC
+Hougang CC
+Jalan Besar CC
+Joo Chiat CC
+Jurong Green CC
+Jurong Spring CC
+Kaki Bukit CC
+Kallang CC
+Kampong Kembangan CC
+Kampong Ubi CC
+Keat Hong CC
+Kebun Baru CC
+Kim Seng CC
+Leng Kee CC
+MacPherson CC
+Marine Parade CC
+Nanyang CC
+Nee Soon East CC
+Nee Soon South CC
+OUR TAMPINES HUB CC
+Pasir Ris Elias CC
+Paya Lebar Kovan CC
+Pek Kio CC
+Potong Pasir CC
+Punggol 21 CC
+Queenstown CC
+Radin Mas CC
+Sembawang CC
+SENJA-CASHEW CC FACILITIES
+Siglap CC
+Taman Jurong CC
+Tampines Changkat CC
+Tampines North CC
+Tampines West CC
+Tanglin CC
+Tanjong Pagar CC
+Teck Ghee CC
+Telok Blangah CC
+The Frontier CC
+Tiong Bahru CC
+Toa Payoh East CC
+Toa Payoh South CC
+Toa Payoh West CC
+West Coast CC
+Whampoa CC
+Woodlands CC
+Woodlands Galaxy CC
+Yew Tee CC
+Yio Chu Kang CC
+Yuhua CC
+Zhenghua CC
+*/
 
-let CCLIST = [
-    { count: 0, name: "ACE The Place CC" },
-    { count: 1, name: "Anchorvale CC" },
-    { count: 2, name: "Ayer Rajah CC" },
-    { count: 3, name: "Bedok CC" },
-    { count: 4, name: "Bishan CC" },
-    { count: 5, name: "Boon Lay CC" },
-    { count: 6, name: "Braddell Heights CC" },
-    { count: 7, name: "Bukit Batok CC" },
-    { count: 8, name: "Bukit Merah CC" },
-    { count: 9, name: "Bukit Panjang CC" },
-    { count: 10, name: "Bukit Timah CC" },
-    { count: 11, name: "Buona Vista CC" },
-    { count: 12, name: "Cairnhill CC" },
-    { count: 13, name: "Canberra CC" },
-    { count: 14, name: "Changi Simei CC" },
-    { count: 15, name: "Chong Pang CC" },
-    { count: 16, name: "Chua Chu Kang CC" },
-    { count: 17, name: "Clementi CC" },
-    { count: 18, name: "Eunos CC" },
-    { count: 19, name: "Gek Poh Ville CC" },
-    { count: 20, name: "Geylang Serai CC" },
-    { count: 21, name: "Geylang West CC" },
-    { count: 22, name: "Henderson CC" },
-    { count: 23, name: "Hong Kah North CC" },
-    { count: 24, name: "Hougang CC" },
-    { count: 25, name: "Joo Chiat CC" },
-    { count: 26, name: "Jurong Green CC" },
-    { count: 27, name: "Jurong Spring CC" },
-    { count: 28, name: "Kaki Bukit CC" },
-    { count: 29, name: "Kallang CC" },
-    { count: 30, name: "Kampong Kembangan CC" },
-    { count: 31, name: "Kampong Ubi CC" },
-    { count: 32, name: "Keat Hong CC" },
-    { count: 33, name: "Kebun Baru CC" },
-    { count: 34, name: "Kim Seng CC" },
-    { count: 35, name: "Leng Kee CC" },
-    { count: 36, name: "MacPherson CC" },
-    { count: 37, name: "Marine Parade CC" },
-    { count: 38, name: "Nanyang CC" },
-    { count: 39, name: "Nee Soon East CC" },
-    { count: 40, name: "Nee Soon South CC" },
-    { count: 41, name: "OUR TAMPINES HUB CC" },
-    { count: 42, name: "Pasir Ris Elias CC" },
-    { count: 43, name: "Paya Lebar Kovan CC" },
-    { count: 44, name: "Pek Kio CC" },
-    { count: 45, name: "Potong Pasir CC" },
-    { count: 46, name: "Punggol 21 CC" },
-    { count: 47, name: "Queenstown CC" },
-    { count: 48, name: "Radin Mas CC" },
-    { count: 49, name: "Sembawang CC" },
-    { count: 50, name: "SENJA-CASHEW CC FACILITIES" },
-    { count: 51, name: "Siglap CC" },
-    { count: 52, name: "Taman Jurong CC" },
-    { count: 53, name: "Tampines Changkat CC" },
-    { count: 54, name: "Tampines North CC" },
-    { count: 55, name: "Tampines West CC" },
-    { count: 56, name: "Tanglin CC" },
-    { count: 57, name: "Tanjong Pagar CC" },
-    { count: 58, name: "Teck Ghee CC" },
-    { count: 59, name: "Telok Blangah CC" },
-    { count: 60, name: "The Frontier CC" },
-    { count: 61, name: "Thomson CC" },
-    { count: 62, name: "Tiong Bahru CC" },
-    { count: 63, name: "Toa Payoh Central CC" },
-    { count: 64, name: "Toa Payoh East CC" },
-    { count: 65, name: "Toa Payoh South CC" },
-    { count: 66, name: "Toa Payoh West CC" },
-    { count: 67, name: "West Coast CC" },
-    { count: 68, name: "Whampoa CC" },
-    { count: 69, name: "Woodlands CC" },
-    { count: 70, name: "Woodlands Galaxy CC" },
-    { count: 71, name: "Yew Tee CC" },
-    { count: 72, name: "Yio Chu Kang CC" },
-    { count: 73, name: "Yuhua CC" },
-    { count: 74, name: "Zhenghua CC" }
-]
-
-// OUR TAMPINES HUB CC -> https://www.onepa.gov.sg/facilities/2400ipogpa-bm
 let webPage = 'https://www.onepa.sg/facilities/4020ccmcpa-bm';
-let slot = [10, 11]
+let slot = [3]
 // dd/mm/yyyy
-let twoDayBeforeDate = "22/07/2020";
-let date = "24/07/2020";
-let ccName = "Jurong Green CC";
+let twoDayBeforeDate = "31/08/2020";
+let date = "28/08/2020";
+let ccName = "Tanglin CC";
 
 (async () => {
     const browser = await puppeteer.launch({
@@ -102,31 +101,33 @@ let ccName = "Jurong Green CC";
     let locationPicker = await page.$('.select2-selection__arrow');
     await locationPicker.click();
 
-    let totalCCCount = 0;
-    for (let i = 0; i < CCLIST.length; i++) {
-        if (CCLIST[i].name === ccName) {
-            totalCCCount = CCLIST[i].count;
+    let ccElement = await page.$$('#select2-content_0_ddlFacilityLocation-results > li', options => options.map(option => option));
+    let ccText = await page.$$eval('#select2-content_0_ddlFacilityLocation-results > li', options => options.map(option => option.innerHTML));
+
+    for (let i = 0; i < ccText.length; i++) {
+        if (ccText[i] === ccName) {
+            await ccElement[i].click();
+            await page.waitForNavigation();
             break;
         }
     }
-    for (let i = 0; i < totalCCCount; i++) {
-        await page.keyboard.press('ArrowDown');
-        await delay(50)
-    }
-    await page.keyboard.press('Enter');
-
-    if (totalCCCount !== 0)
-        await page.waitForNavigation();
 
     await selectDate(page, date, twoDayBeforeDate)
 
-    table = await page.$('#facTable1');
+    let table = await page.$('#facTable1');
     let result = await searchForSlot(table, slot);
     if (result) {
         let checkOut = await page.$(`#content_0_btnAddToCart`);
         await checkOut.click();
         await page.waitForNavigation();
-        console.log("Slot found please compelte the booking before close the brower or program")
+        const cookies = await page.cookies();
+        await sentEmail(cookies, date, ccName);
+        fs.writeFile('cookies.json', JSON.stringify(cookies, null, 2), async function (err) {
+            if (err) throw err;
+            console.log('Completed write of cookies');
+            console.log('Booking Completed');
+            await browser.close();
+        });
     } else {
         console.log("Slot Not found")
     }
@@ -159,7 +160,7 @@ async function searchForSlot(table, slot) {
 
 async function selectDate(page, date, twoDayBeforeDate) {
     let dateResult = null
-    let error = "something";
+    let error = "error";
 
     while (dateResult !== date || error !== '') {
         await page.focus('#content_0_tbDatePicker');
@@ -187,5 +188,84 @@ async function selectDate(page, date, twoDayBeforeDate) {
 function delay(time) {
     return new Promise(function (resolve) {
         setTimeout(resolve, time)
+    });
+}
+
+function sentEmail(cookies, date, ccName) {
+    // Provide the full path to your config.json file. 
+    aws.config.loadFromPath('./config.json');
+
+    // Replace sender@example.com with your "From" address.
+    // This address must be verified with Amazon SES.
+    const sender = "eugene@tenchicomics.com";
+
+    // Replace recipient@example.com with a "To" address. If your account 
+    // is still in the sandbox, this address must be verified.
+    const recipient = "eugeneaad@gmail.com";
+
+    // Specify a configuration set. If you do not want to use a configuration
+    // set, comment the following variable, and the 
+    // ConfigurationSetName : configuration_set argument below.
+    // const configuration_set = "ConfigSet";
+
+    // The subject line for the email.
+    const subject = `${date} at ${ccName}`;
+
+    // The email body for recipients with non-HTML email clients.
+    const body_text = JSON.stringify(cookies, null, 2);
+
+    // The HTML body of the email.
+    // const body_html = `<html>
+    // <head></head>
+    // <body>
+    // <h1>Amazon SES Test (SDK for JavaScript in Node.js)</h1>
+    // <p>This email was sent with
+    //     <a href='https://aws.amazon.com/ses/'>Amazon SES</a> using the
+    //     <a href='https://aws.amazon.com/sdk-for-node-js/'>
+    //     AWS SDK for JavaScript in Node.js</a>.</p>
+    // </body>
+    // </html>`;
+
+    // The character encoding for the email.
+    const charset = "UTF-8";
+
+    // Create a new SES object. 
+    var ses = new aws.SES();
+
+    // Specify the parameters to pass to the API.
+    var params = {
+        Source: sender,
+        Destination: {
+            ToAddresses: [
+                recipient
+            ],
+        },
+        Message: {
+            Subject: {
+                Data: subject,
+                Charset: charset
+            },
+            Body: {
+                Text: {
+                    Data: body_text,
+                    Charset: charset
+                },
+                // Html: {
+                //     Data: body_html,
+                //     Charset: charset
+                // }
+            }
+        },
+        // ConfigurationSetName: configuration_set
+    };
+
+    //Try to send the email.
+    ses.sendEmail(params, function (err, data) {
+        // If something goes wrong, print an error message.
+        if (err) {
+            console.log(err.message);
+        } else {
+            console.log("Email sent! Message ID: ", data.MessageId);
+        }
     });
 }
