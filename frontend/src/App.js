@@ -170,10 +170,10 @@ export default function BadmintonBooker() {
       location: location,
       slot: slots,
       email: email
-    }).then(function (response) {
-      console.log(response);
-    }).catch(function (error) {
-      console.log(error);
+    }).then((response) => {
+      alert(response.data);
+    }).catch((error) => {
+      alert(error);
     });
   }
   return (

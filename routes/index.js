@@ -7,93 +7,96 @@ const fs = require('fs');
 var schedule = require('node-schedule');
 const webPage = 'https://www.onepa.sg/facilities/4020ccmcpa-bm';
 let scheduleFlag = false;
+let job;
 /* GET home page. */
 router.post('/book', function (req, res, next) {
-  let scheduleDate = `0 55 21 * * *`
-  let job;
+  let scheduleDate = `0 37 22 * * *`
+
   if (scheduleFlag === true) {
-    console.log(`Job has scheduled... `)
+    console.log(`Job has already scheduled... `)
     console.log(`Cancel scheduled... `)
     scheduleFlag = false;
     job.cancel();
+    res.send(`Job has already scheduled... Replacing with new schedule... ${scheduleDate} for ${req.body.location} on ${req.body.date}`)
   } else {
-    console.log(`Starting scheduler... ${scheduleDate}`)
-    job = schedule.scheduleJob(scheduleDate, function () {
-      scheduleFlag = true;
-      let selectedDate = new Date(req.body.date);
-      let date = selectedDate.getDate();
-      let month = selectedDate.getMonth() + 1;
-      if (month < 10) {
-        month = `0${month}`
-      }
-      let year = selectedDate.getFullYear();
-      let dateString = `${date}/${month}/${year}`
+    res.send(`Job has scheduled... ${scheduleDate} for ${req.body.location} on ${req.body.date}`)
+  }
+  console.log(`Starting scheduler... ${scheduleDate} for ${req.body.location} on ${req.body.date}`)
+  scheduleFlag = true;
+  job = schedule.scheduleJob(scheduleDate, function () {
+    let selectedDate = new Date(req.body.date);
+    let date = selectedDate.getDate();
+    let month = selectedDate.getMonth() + 1;
+    if (month < 10) {
+      month = `0${month}`
+    }
+    let year = selectedDate.getFullYear();
+    let dateString = `${date}/${month}/${year}`
 
-      let twoDayBeforeDate = selectedDate;
-      twoDayBeforeDate.setDate(selectedDate.getDate() - 2);
-      date = twoDayBeforeDate.getDate();
-      month = twoDayBeforeDate.getMonth();
-      if (month < 10) {
-        month = `0${month}`
-      }
-      year = twoDayBeforeDate.getFullYear();
-      let twoDayBeforeString = `${date}/${month}/${year}`
+    let twoDayBeforeDate = selectedDate;
+    twoDayBeforeDate.setDate(selectedDate.getDate() - 2);
+    date = twoDayBeforeDate.getDate();
+    month = twoDayBeforeDate.getMonth();
+    if (month < 10) {
+      month = `0${month}`
+    }
+    year = twoDayBeforeDate.getFullYear();
+    let twoDayBeforeString = `${date}/${month}/${year}`
 
-      let slot = req.body.slot
-      let ccName = req.body.location;
-      let email = req.body.email;
-      (async () => {
-        const browser = await puppeteer.launch({
-          defaultViewport: null,
-          headless: false,
-          args: ['--start-fullscreen'],
-        });
+    let slot = req.body.slot
+    let ccName = req.body.location;
+    let email = req.body.email;
+    (async () => {
+      const browser = await puppeteer.launch({
+        defaultViewport: null,
+        headless: false,
+        args: ['--start-fullscreen'],
+      });
 
-        console.log("Seaching...")
-        const page = await browser.newPage();
-        await page.goto(webPage);
+      console.log("Seaching...")
+      const page = await browser.newPage();
+      await page.goto(webPage);
 
 
-        let locationPicker = await page.$('.select2-selection__arrow');
-        await locationPicker.click();
+      let locationPicker = await page.$('.select2-selection__arrow');
+      await locationPicker.click();
 
-        let ccElement = await page.$$('#select2-content_0_ddlFacilityLocation-results > li', options => options.map(option => option));
-        let ccText = await page.$$eval('#select2-content_0_ddlFacilityLocation-results > li', options => options.map(option => option.innerHTML));
+      let ccElement = await page.$$('#select2-content_0_ddlFacilityLocation-results > li', options => options.map(option => option));
+      let ccText = await page.$$eval('#select2-content_0_ddlFacilityLocation-results > li', options => options.map(option => option.innerHTML));
 
-        for (let i = 0; i < ccText.length; i++) {
-          if (ccText[i] === ccName) {
-            await ccElement[i].click();
-            await page.waitForNavigation();
-            break;
-          }
-        }
-        let table = await page.$('#facTable1');
-
-        await selectDate(page, table, dateString, twoDayBeforeString)
-
-        let result = await searchForSlot(table, slot);
-        if (result) {
-          let checkOut = await page.$(`#content_0_btnAddToCart`);
-          await checkOut.click();
+      for (let i = 0; i < ccText.length; i++) {
+        if (ccText[i] === ccName) {
+          await ccElement[i].click();
           await page.waitForNavigation();
-          const cookies = await page.cookies();
-          await sentEmail(cookies, date, ccName, email);
-          fs.writeFile('cookies.json', JSON.stringify(cookies, null, 2), async function (err) {
-            if (err) throw err;
-            console.log('Completed write of cookies');
-            console.log('Booking Completed, Email sent');
-            scheduleFlag = false;
-            await browser.close();
-          });
-        } else {
-          console.log("Slot Not found")
-          await sentEmail("Slot Not found", date, ccName, email);
+          break;
+        }
+      }
+      let table = await page.$('#facTable1');
+
+      await selectDate(page, table, dateString, twoDayBeforeString)
+
+      let result = await searchForSlot(table, slot);
+      if (result) {
+        let checkOut = await page.$(`#content_0_btnAddToCart`);
+        await checkOut.click();
+        await page.waitForNavigation();
+        const cookies = await page.cookies();
+        await sentEmail(cookies, date, ccName, email);
+        fs.writeFile('cookies.json', JSON.stringify(cookies, null, 2), async function (err) {
+          if (err) throw err;
+          console.log('Completed write of cookies');
+          console.log('Booking Completed, Email sent');
           scheduleFlag = false;
           await browser.close();
-        }
-      })();
-    });
-  }
+        });
+      } else {
+        console.log("Slot Not found")
+        await sentEmail("Slot Not found", date, ccName, email);
+        scheduleFlag = false;
+        await browser.close();
+      }
+    })();
+  });
 });
 
 
