@@ -30,6 +30,16 @@
                 "<node_internals>/**"
             ],
             "program": "${workspaceFolder}/OpenBroswerWithCookies.js"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "outputCapture": "std",
+            "name": "Backend",
+            "program": "${workspaceFolder}/bin/www",
+            "env": {
+                "PORT": "9999",
+            }
         }
     ]
 }

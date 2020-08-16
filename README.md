@@ -21,4 +21,5 @@ Book a pariticular slots at a pariticular CC on a paticular day.
 3. Change the input parameters
 4. node BookerForParticularCC.js or BadmintonBooking.js
 
-***Lazy to code the UI part and no plans for the UI page for now.***
+# Upadte 16/08/2020
+Added UI for the booker
