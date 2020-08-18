@@ -10,7 +10,7 @@ let scheduleFlag = false;
 let job;
 /* GET home page. */
 router.post('/book', function (req, res, next) {
-  let scheduleDate = `0 37 22 * * *`
+  let scheduleDate = `0 56 22 * * *`
 
   if (scheduleFlag === true) {
     console.log(`Job has already scheduled... `)
@@ -50,7 +50,8 @@ router.post('/book', function (req, res, next) {
       const browser = await puppeteer.launch({
         defaultViewport: null,
         headless: false,
-        args: ['--start-fullscreen'],
+        // args: ['--start-fullscreen'],
+        args: ['--no-sandbox'],
       });
 
       console.log("Seaching...")
@@ -119,18 +120,18 @@ async function searchForSlot(table, slot) {
         }
       }
     }
-  } catch {
+  } catch (err) {
     return false;
   }
   return false;
 }
 
-async function selectDate(page, table, date, twoDayBeforeDate) {
-  console.log("Selecting date...")
+async function selectDate(page, date, twoDayBeforeDate) {
   let dateResult = null
   let error = "error";
 
   while (dateResult !== date || error !== '') {
+    console.log("Selecting Date...")
     await page.focus('#content_0_tbDatePicker');
     await page.$eval('#content_0_tbDatePicker', (e) => e.removeAttribute("readonly"));
 
@@ -140,15 +141,21 @@ async function selectDate(page, table, date, twoDayBeforeDate) {
     else
       await page.keyboard.type(`${date}`);
 
-    await page.keyboard.press('Enter');
-    await page.keyboard.press('Enter');
-    await page.waitForNavigation();
+
+    try {
+      await page.keyboard.press('Enter');
+      await page.keyboard.press('Enter');
+      await page.setDefaultNavigationTimeout(5000);
+      await page.waitForNavigation();
+    } catch (err) {
+      console.log(err)
+    }
+
 
     dateResult = await page.$eval('#content_0_tbDatePicker', e => e.getAttribute('value'))
-    console.log("Date not available, picking again")
+    console.log(`Date not available, picking again`)
     error = await page.$eval('#content_0_lblError', e => e.innerHTML)
-    console.log(error)
-
+    console.log(`Error: ${error}`)
   }
   console.log("Continue...")
   return;
