@@ -12,7 +12,7 @@ module.exports = {
     },
     {
         name: "badminton-frontend",
-        script: "cd ./frontend/ && serve -s build",
+        script: "./frontend/ecosystem.config.js",
         watch: true,
         env: {
             "NODE_ENV": "development",
