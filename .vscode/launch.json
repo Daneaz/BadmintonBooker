@@ -36,7 +36,7 @@
             "request": "launch",
             "outputCapture": "std",
             "name": "Backend",
-            "program": "${workspaceFolder}/bin/www",
+            "program": "${workspaceFolder}/backend/bin/www",
             "env": {
                 "PORT": "9999",
             }
