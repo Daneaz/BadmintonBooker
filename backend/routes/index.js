@@ -10,7 +10,7 @@ let scheduleFlag = false;
 let job;
 /* GET home page. */
 router.post('/book', function (req, res, next) {
-  let scheduleDate = `0 56 22 * * *`
+  let scheduleDate = `0 56 21 * * *`
 
   if (scheduleFlag === true) {
     console.log(`Job has already scheduled... `)
@@ -49,7 +49,7 @@ router.post('/book', function (req, res, next) {
     (async () => {
       const browser = await puppeteer.launch({
         defaultViewport: null,
-        headless: false,
+        headless: true,
         // args: ['--start-fullscreen'],
         args: ['--no-sandbox'],
       });
