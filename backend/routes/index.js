@@ -9,34 +9,17 @@ const webPage = 'https://www.onepa.sg/facilities/4020ccmcpa-bm';
 let counter = 0;
 /* GET home page. */
 router.post('/book', function (req, res, next) {
-  const scheduleDate = `0 56 21 * * *`
+  const scheduleDate = `0 55 21 * * *`
 
   console.log(`Current job count: ${counter}`)
   if (counter >= 5) {
     res.send(`Max scheduler = 5, Current scheduler= ${counter}`)
   } else {
     counter++;
-    console.log(`Job has scheduled for ${req.body.location} on ${req.body.date}... Current job count: ${counter}`)
-    res.send(`Job has scheduled for ${req.body.location} on ${req.body.date}... Current job count: ${counter}`)
+    console.log(`Job has scheduled to book ${req.body.location} on ${new Date(req.body.date).toLocaleDateString()} for slot ${req.body.slot}... The script will run at 21:55... Result should be out by 22:05... Max job = 5, Current job count = ${counter}`)
+    res.send(`Job has scheduled to book ${req.body.location} on ${new Date(req.body.date).toLocaleDateString()} for slot ${req.body.slot}... The script will run at 21:55... Result should be out by 22:05... Max job = 5,  Current job count = ${counter}`)
     schedule.scheduleJob(scheduleDate, function () {
-      let selectedDate = new Date(req.body.date);
-      let date = selectedDate.getDate();
-      let month = selectedDate.getMonth() + 1;
-      if (month < 10) {
-        month = `0${month}`
-      }
-      let year = selectedDate.getFullYear();
-      let dateString = `${date}/${month}/${year}`
-
-      let twoDayBeforeDate = selectedDate;
-      twoDayBeforeDate.setDate(selectedDate.getDate() - 2);
-      date = twoDayBeforeDate.getDate();
-      month = twoDayBeforeDate.getMonth();
-      if (month < 10) {
-        month = `0${month}`
-      }
-      year = twoDayBeforeDate.getFullYear();
-      let twoDayBeforeString = `${date}/${month}/${year}`
+      let date = new Date(req.body.date);
 
       let slot = req.body.slot
       let ccName = req.body.location;
@@ -45,7 +28,6 @@ router.post('/book', function (req, res, next) {
         const browser = await puppeteer.launch({
           defaultViewport: null,
           headless: true,
-          // args: ['--start-fullscreen'],
           args: ['--no-sandbox'],
         });
 
@@ -69,9 +51,17 @@ router.post('/book', function (req, res, next) {
         }
         let table = await page.$('#facTable1');
 
-        await selectDate(page, table, dateString, twoDayBeforeString)
+        await selectDate(page, date)
 
         let result = await searchForSlot(table, slot);
+        let loopBreaker = 0;
+        while (result === false && loopBreaker < 1000) {
+          loopBreaker++;
+          console.log(`Searching for slot... Refreshing...${loopBreaker}... Time: ${new Date().toLocaleString()}`)
+          delay(500)
+          await page.reload();
+          result = await searchForSlot(table, slot)
+        }
         if (result) {
           let checkOut = await page.$(`#content_0_btnAddToCart`);
           await checkOut.click();
@@ -87,7 +77,6 @@ router.post('/book', function (req, res, next) {
           });
         } else {
           console.log("Slot Not found")
-          await sentEmail("Slot Not found", date, ccName, email);
           counter--;
           await browser.close();
         }
@@ -123,39 +112,30 @@ async function searchForSlot(table, slot) {
   return false;
 }
 
-async function selectDate(page, date, twoDayBeforeDate) {
-  let dateResult = null
-  let error = "error";
-
-  while (dateResult !== date || error !== '') {
-    console.log("Selecting Date...")
+async function selectDate(page, date) {
+  let loopBreaker = 0;
+  while (loopBreaker < 2000) {
     await page.focus('#content_0_tbDatePicker');
-    await page.$eval('#content_0_tbDatePicker', (e) => e.removeAttribute("readonly"));
+    let nextBtn = await page.$('#ui-datepicker-div > div > a.ui-datepicker-next.ui-corner-all');
+    await nextBtn.click();
 
-    await page.evaluate(() => document.getElementById("content_0_tbDatePicker").value = "")
-    if (error !== '')
-      await page.keyboard.type(`${twoDayBeforeDate}`);
-    else
-      await page.keyboard.type(`${date}`);
-
-
-    try {
-      await page.keyboard.press('Enter');
-      await page.keyboard.press('Enter');
-      await page.setDefaultNavigationTimeout(5000);
-      await page.waitForNavigation();
-    } catch (err) {
-      console.log(err)
+    let dateObject = await page.$$('#ui-datepicker-div > table > tbody > tr > td > a', options => options.map(option => option));
+    let dateText = await page.$$eval('#ui-datepicker-div > table > tbody > tr > td > a', options => options.map(option => option.innerHTML));
+    if (dateObject.length >= date.getDate()) {
+      for (let i = 0; i < dateText.length; i++) {
+        if (dateText[i] == date.getDate()) {
+          await dateObject[i].click();
+          await page.waitForNavigation();
+          return;
+        }
+      }
+    } else {
+      loopBreaker++;
+      console.log(`Selecting date.... Refreshing...${loopBreaker}... Time: ${new Date().toLocaleString()}`)
+      delay(500)
+      await page.reload();
     }
-
-
-    dateResult = await page.$eval('#content_0_tbDatePicker', e => e.getAttribute('value'))
-    console.log(`Date not available, picking again`)
-    error = await page.$eval('#content_0_lblError', e => e.innerHTML)
-    console.log(`Error: ${error}`)
   }
-  console.log("Continue...")
-  return;
 }
 
 function delay(time) {

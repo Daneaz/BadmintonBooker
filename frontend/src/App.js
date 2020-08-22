@@ -146,8 +146,7 @@ export default function BadmintonBooker() {
   const [email, setEmail] = React.useState('eugeneaad@gmail.com');
   const [selectedSlots, setSelectedSlots] = useState([
     { label: "6", value: 6 },
-    { label: "7", value: 7 },
-    { label: "8", value: 8 },]);
+    { label: "7", value: 7 },]);
   const handleDateChange = (date) => {
     setSelectedDate(date);
   };
@@ -220,7 +219,7 @@ export default function BadmintonBooker() {
             options={slotList}
             value={selectedSlots}
             onChange={setSelectedSlots}
-            labelledBy={"Select Slots"}
+            labelledBy={"Select Slots...CC limit to two slots only.."}
           />
 
           <Button
