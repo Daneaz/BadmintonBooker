@@ -56,11 +56,15 @@ router.post('/book', function (req, res, next) {
         let result = await searchForSlot(table, slot);
         let loopBreaker = 0;
         while (result === false && loopBreaker < 1000) {
-          loopBreaker++;
-          console.log(`Searching for slot... Refreshing...${loopBreaker}... Time: ${new Date().toLocaleString()}`)
-          delay(500)
-          await page.reload();
-          result = await searchForSlot(table, slot)
+          try {
+            loopBreaker++;
+            console.log(`Searching for slot... Refreshing...${loopBreaker}... Time: ${new Date().toLocaleString()}`)
+            delay(500)
+            await page.reload();
+            result = await searchForSlot(table, slot)
+          } catch (error) {
+            console.log(error)
+          }
         }
         if (result) {
           let checkOut = await page.$(`#content_0_btnAddToCart`);
@@ -115,25 +119,29 @@ async function searchForSlot(table, slot) {
 async function selectDate(page, date) {
   let loopBreaker = 0;
   while (loopBreaker < 2000) {
-    await page.focus('#content_0_tbDatePicker');
-    let nextBtn = await page.$('#ui-datepicker-div > div > a.ui-datepicker-next.ui-corner-all');
-    await nextBtn.click();
+    try {
+      await page.focus('#content_0_tbDatePicker');
+      let nextBtn = await page.$('#ui-datepicker-div > div > a.ui-datepicker-next.ui-corner-all');
+      await nextBtn.click();
 
-    let dateObject = await page.$$('#ui-datepicker-div > table > tbody > tr > td > a', options => options.map(option => option));
-    let dateText = await page.$$eval('#ui-datepicker-div > table > tbody > tr > td > a', options => options.map(option => option.innerHTML));
-    if (dateObject.length >= date.getDate()) {
-      for (let i = 0; i < dateText.length; i++) {
-        if (dateText[i] == date.getDate()) {
-          await dateObject[i].click();
-          await page.waitForNavigation();
-          return;
+      let dateObject = await page.$$('#ui-datepicker-div > table > tbody > tr > td > a', options => options.map(option => option));
+      let dateText = await page.$$eval('#ui-datepicker-div > table > tbody > tr > td > a', options => options.map(option => option.innerHTML));
+      if (dateObject.length >= date.getDate()) {
+        for (let i = 0; i < dateText.length; i++) {
+          if (dateText[i] == date.getDate()) {
+            await dateObject[i].click();
+            await page.waitForNavigation();
+            return;
+          }
         }
+      } else {
+        loopBreaker++;
+        console.log(`Selecting date.... Refreshing...${loopBreaker}... Time: ${new Date().toLocaleString()}`)
+        delay(500)
+        await page.reload();
       }
-    } else {
-      loopBreaker++;
-      console.log(`Selecting date.... Refreshing...${loopBreaker}... Time: ${new Date().toLocaleString()}`)
-      delay(500)
-      await page.reload();
+    } catch (error) {
+      console.log(error)
     }
   }
 }
