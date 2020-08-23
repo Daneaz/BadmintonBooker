@@ -1,5 +1,6 @@
 module.exports = {
   apps: [{
+    name: "Badminton-UI",
     script: 'npx',
     args: 'serve build -s',
     env_production: {
