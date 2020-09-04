@@ -3,60 +3,140 @@
 var aws = require('aws-sdk');
 const puppeteer = require('puppeteer');
 const fs = require('fs');
+var schedule = require('node-schedule');
+/* 
+  "ACE The Place CC",
+  "Anchorvale CC",
+  "Ayer Rajah CC",
+  "Bedok CC",
+  "Boon Lay CC",
+  "Braddell Heights CC",
+  "Bukit Batok CC",
+  "Bukit Merah CC",
+  "Bukit Panjang CC",
+  "Bukit Timah CC",
+  "Buona Vista CC",
+  "Cairnhill CC",
+  "Canberra CC",
+  "Changi Simei CC",
+  "Chong Pang CC",
+  "Chua Chu Kang CC",
+  "Clementi CC",
+  "Eunos CC",
+  "Gek Poh Ville CC",
+  "Geylang Serai CC",
+  "Geylang West CC",
+  "Henderson CC",
+  "Hong Kah North CC",
+  "Hougang CC",
+  "Jalan Besar CC",
+  "Joo Chiat CC",
+  "Jurong Green CC",
+  "Jurong Spring CC",
+  "Kaki Bukit CC",
+  "Kallang CC",
+  "Kampong Kembangan CC",
+  "Kampong Ubi CC",
+  "Keat Hong CC",
+  "Kebun Baru CC",
+  "Kim Seng CC",
+  "Leng Kee CC",
+  "MacPherson CC",
+  "Marine Parade CC",
+  "Nanyang CC",
+  "Nee Soon East CC",
+  "Nee Soon South CC",
+  "OUR TAMPINES HUB CC",
+  "Pasir Ris Elias CC",
+  "Paya Lebar Kovan CC",
+  "Pek Kio CC",
+  "Potong Pasir CC",
+  "Punggol 21 CC",
+  "Queenstown CC",
+  "Radin Mas CC",
+  "Sembawang CC",
+  "SENJA - CASHEW CC FACILITIES",
+  "Siglap CC",
+  "Taman Jurong CC",
+  "Tampines Changkat CC",
+  "Tampines North CC",
+  "Tampines West CC",
+  "Tanglin CC",
+  "Tanjong Pagar CC",
+  "Teck Ghee CC",
+  "Telok Blangah CC",
+  "The Frontier CC",
+  "Tiong Bahru CC",
+  "Toa Payoh East CC",
+  "Toa Payoh South CC",
+  "Toa Payoh West CC",
+  "West Coast CC",
+  "Whampoa CC",
+  "Woodlands CC",
+  "Woodlands Galaxy CC",
+  "Yew Tee CC",
+  "Yio Chu Kang CC",
+  "Yuhua CC",
+  "Zhenghua CC"
+*/
 
 let webPage = 'https://www.onepa.sg/facilities/4020ccmcpa-bm';
-let slot = [3]
+let slot = [7, 8]
 // dd/mm/yyyy
-let twoDayBeforeDate = "31/08/2020";
-let date = "28/08/2020";
-let ccName = "Tanglin CC";
+let twoDayBeforeDate = "18/09/2020";
+let date = "20/09/2020";
+let ccName = "Whampoa CC";
+const scheduleDate = `0 55 21 * * *`
 
-(async () => {
-    const browser = await puppeteer.launch({
-        defaultViewport: null,
-        headless: false,
-        args: ['--start-fullscreen'],
-    });
-
-    console.log("Seaching...")
-    const page = await browser.newPage();
-    await page.goto(webPage);
-
-
-    let locationPicker = await page.$('.select2-selection__arrow');
-    await locationPicker.click();
-
-    let ccElement = await page.$$('#select2-content_0_ddlFacilityLocation-results > li', options => options.map(option => option));
-    let ccText = await page.$$eval('#select2-content_0_ddlFacilityLocation-results > li', options => options.map(option => option.innerHTML));
-
-    for (let i = 0; i < ccText.length; i++) {
-        if (ccText[i] === ccName) {
-            await ccElement[i].click();
-            await page.waitForNavigation();
-            break;
-        }
-    }
-
-    await selectDate(page, date, twoDayBeforeDate)
-
-    let table = await page.$('#facTable1');
-    let result = await searchForSlot(table, slot);
-    if (result) {
-        let checkOut = await page.$(`#content_0_btnAddToCart`);
-        await checkOut.click();
-        await page.waitForNavigation();
-        const cookies = await page.cookies();
-        await sentEmail(cookies, date, ccName);
-        fs.writeFile('cookies.json', JSON.stringify(cookies, null, 2), async function (err) {
-            if (err) throw err;
-            console.log('Completed write of cookies');
-            console.log('Booking Completed');
-            await browser.close();
+console.log(`Job has scheduled for ${ccName} on ${date} for slot ${slot}`)
+schedule.scheduleJob(scheduleDate, function () {
+    (async () => {
+        const browser = await puppeteer.launch({
+            defaultViewport: null,
+            headless: false,
+            args: ['--start-fullscreen'],
         });
-    } else {
-        console.log("Slot Not found")
-    }
-})();
+
+        console.log("Seaching...")
+        const page = await browser.newPage();
+        await page.goto(webPage);
+
+
+        let locationPicker = await page.$('.select2-selection__arrow');
+        await locationPicker.click();
+
+        let ccElement = await page.$$('#select2-content_0_ddlFacilityLocation-results > li', options => options.map(option => option));
+        let ccText = await page.$$eval('#select2-content_0_ddlFacilityLocation-results > li', options => options.map(option => option.innerHTML));
+
+        for (let i = 0; i < ccText.length; i++) {
+            if (ccText[i] === ccName) {
+                await ccElement[i].click();
+                await page.waitForNavigation();
+                break;
+            }
+        }
+
+        await selectDate(page, date, twoDayBeforeDate)
+
+        let table = await page.$('#facTable1');
+        let result = await searchForSlot(table, slot);
+        if (result) {
+            let checkOut = await page.$(`#content_0_btnAddToCart`);
+            await checkOut.click();
+            await page.waitForNavigation();
+            const cookies = await page.cookies();
+            await sentEmail(cookies, date, ccName);
+            fs.writeFile('cookies.json', JSON.stringify(cookies, null, 2), async function (err) {
+                if (err) throw err;
+                console.log('Completed write of cookies');
+                console.log('Booking Completed');
+                await browser.close();
+            });
+        } else {
+            console.log("Slot Not found")
+        }
+    })();
+});
 
 async function searchForSlot(table, slot) {
     try {
