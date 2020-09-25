@@ -19,8 +19,9 @@ Book a pariticular slots at a pariticular CC on a paticular day.
 #### Script:
 1. Clone the project 
 2. npm i 
-3. Change the input parameters
-4. node BookerForParticularCC.js or BadmintonBooking.js
+3. Comment out await sentEmail(cookies, date, ccName); if you dont have AWS SES. Else create a file name "config.json" under root folder and put you crecidential there. 
+4. Change the input parameters
+5. node BookerForParticularCC.js or BadmintonBooking.js
 
 #### Full App
 1. Clone the project 
