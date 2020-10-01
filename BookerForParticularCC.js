@@ -125,7 +125,7 @@ schedule.scheduleJob(scheduleDate, function () {
             await checkOut.click();
             await page.waitForNavigation();
             const cookies = await page.cookies();
-            await sentEmail(cookies, date, ccName);
+//             await sentEmail(cookies, date, ccName);
             fs.writeFile('cookies.json', JSON.stringify(cookies, null, 2), async function (err) {
                 if (err) throw err;
                 console.log('Completed write of cookies');
